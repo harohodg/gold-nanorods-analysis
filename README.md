@@ -7,5 +7,5 @@ Code and data for the gold nanorods analysis
   - nanorods : Files are named according to the number of gold atoms (n). Au(n).xyz
 - scripts
   - Gaussian_scripts : Example scripts used with Gaussian 09
-  - Miepy_scripts : Scripts used wit the miepy calculations
-  - plotting_scripts : Scripts used to plot the Gaussian spectra data using gnuplot
+  - Miepy_scripts    : Scripts used with the miepy calculations
+  - plotting_scripts : Scripts used to plot the Gaussian spectra data using gnuplot 5.2.
