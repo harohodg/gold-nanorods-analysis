@@ -19,28 +19,47 @@ if (!exists("min_std")) min_std=0.2
 if (!exists("delta_std")) delta_std=0.2
 if (!exists("num_std")) num_std=4
 
-if (!exists("root_folder")) root_folder='..'
+#Determine where to look for files
+#What axis labels to use
+#What filename to use
+if (!exists("std"))            std=1.0
+if (!exists("root_folder"))    root_folder='..'
 if (!exists("desired_xlabel")) desired_xlabel= plot_eV != 0 ? 'E (eV)' : 'λ (nm)'
 if (!exists("desired_ylabel")) desired_ylabel= plot_AB != 0 ? 'ε(L mol^{-1} cm^{-1})' : plot_abs != 0 ? 'abs(δε)(L mol^{-1} cm^{-1})' : 'δε(L mol^{-1} cm^{-1})'
 if (!exists("xmax")) xmax=6
-if (!exists("low")) low=0
+if (!exists("low"))  low=0
 if (!exists("high")) high=10*xmax
 
 plot_type  = plot_AB != 0 ? 'AB' : plot_abs != 0 ? 'AVCD' :'CD'
 plot_xaxis = plot_eV != 0 ? 'eV' : 'nm'
-if (!exists("file_name")) file_name=sprintf('%s_Spectra_%.2f_to_%.2f_%s_multi_std.svg',plot_type,low,high,plot_xaxis)
+if (!exists("file_name")) file_name=sprintf('%s_Spectra_%.2f_to_%.2f_%s_std=%.2f.svg',plot_type,low,high,plot_xaxis, std)
 plot_title = sprintf('Smoothed %s Spectra', plot_type)
 
 
+if (!exists("num_samples")) num_samples=1000
+if (!exists("vpixels"))     vpixels=6000
+if (!exists("hpixels"))     hpixels=vpixels/2
 
-num_samples=1000
-vpixels=1080
-hpixels=1920
+if (!exists("left_margin"))  left_margin=5
+if (!exists("right_margin")) right_margin=left_margin
+
+if (!exists("plot_font"))   plot_font='Helvetica,100'
+if (!exists("title_font"))  title_font=plot_font
+if (!exists("tics_font"))   tics_font=plot_font
+if (!exists("ylabel_font")) ylabel_font=plot_font
+if (!exists("xlabel_font")) xlabel_font=plot_font
+if (!exists("legend_font")) legend_font=plot_font
+
+
 xcolumn=plot_eV != 0 ? eV_column : nm_column
 ycolumn=plot_AB != 0 ? AB_column : CD_column
 
-title_offset=-3.5
-line_thickness=3
+
+if (!exists("title_offset")) title_offset=0
+if (!exists("ylabel_offset")) ylabel_offset=-2
+if (!exists("xlabel_offset")) xlabel_offset=0
+if (!exists("line_spectra_thickness")) line_spectra_thickness=1
+if (!exists("smoothed_spectra_thickness")) smoothed_spectra_thickness=5
 
 
 
@@ -92,17 +111,17 @@ function(i, file, std, low, high)=sprintf("<  if [ -f '%s' ];then awk  'function
 #Gaussian functions of the form fi(x)=0+gaussian(x,a,b,s)+guassian(x,c,d,s)...
 #where a,b,c,d etc are from the data file
 
-set lmargin 20
-set rmargin 20
+set lmargin left_margin
+set rmargin right_margin
 set samples num_samples
-set term svg size vpixels,hpixels enhanced font 'Verdana,10'
+set terminal svg size hpixels,vpixels enhanced font plot_font
 set xrange [0:xmax]
 set output file_name
-set title font "Helvetica,20"
-set tics font "Helvetica,15"
-set ylabel font "Helvetica,20"
-set xlabel font "Helvetica,20"
-set key font "Helvetica,20"
+set title font  title_font
+set tics font   tics_font
+set ylabel font ylabel_font
+set xlabel font xlabel_font
+set key font    legend_font
 
 set multiplot layout num_plots ,1 columnsfirst upwards
 #set tmargin 1          # switch off the top axis
@@ -110,8 +129,9 @@ set multiplot layout num_plots ,1 columnsfirst upwards
 
 
 set key below
-set xlabel desired_xlabel
-set ylabel desired_ylabel offset -4,0
+set title plot_title offset 0,title_offset
+set xlabel desired_xlabel offset 0,xlabel_offset
+set ylabel desired_ylabel offset ylabel_offset,0
 
 
 
@@ -134,11 +154,11 @@ do for [i=1:num_plots] {
     load function(5, data_file5, std, low, high)
 
     plot  \
-    f1(x) lw line_thickness title smoothed_plot_1_title, \
-    f2(x) lw line_thickness title smoothed_plot_2_title, \
-    f3(x) lw line_thickness title smoothed_plot_3_title, \
-    f4(x) lw line_thickness title smoothed_plot_4_title, \
-    f5(x) lw line_thickness title smoothed_plot_5_title, \
+    f1(x) lw smoothed_spectra_thickness title smoothed_plot_1_title, \
+    f2(x) lw smoothed_spectra_thickness title smoothed_plot_2_title, \
+    f3(x) lw smoothed_spectra_thickness title smoothed_plot_3_title, \
+    f4(x) lw smoothed_spectra_thickness title smoothed_plot_4_title, \
+    f5(x) lw smoothed_spectra_thickness title smoothed_plot_5_title, \
     0 title ''
     SCALE_MAX=max(GPVAL_Y_MAX,SCALE_MAX)
     SCALE_MIN=min(GPVAL_Y_MIN,SCALE_MIN)
@@ -159,11 +179,11 @@ plot_title=sprintf('%.2f %s', std, plot_eV ? 'eV' : 'nm')
 set title plot_title offset 0,title_offset
 #Plot Smoothed plot
 plot  \
-f1(x) lw line_thickness title smoothed_plot_1_title, \
-f2(x) lw line_thickness title smoothed_plot_2_title, \
-f3(x) lw line_thickness title smoothed_plot_3_title, \
-f4(x) lw line_thickness title smoothed_plot_4_title, \
-f5(x) lw line_thickness title smoothed_plot_5_title, \
+f1(x) lw smoothed_spectra_thickness title smoothed_plot_1_title, \
+f2(x) lw smoothed_spectra_thickness title smoothed_plot_2_title, \
+f3(x) lw smoothed_spectra_thickness title smoothed_plot_3_title, \
+f4(x) lw smoothed_spectra_thickness title smoothed_plot_4_title, \
+f5(x) lw smoothed_spectra_thickness title smoothed_plot_5_title, \
 0 title ''
 
 unset key
@@ -190,11 +210,11 @@ do for [i=2:num_plots] {
     plot_title=sprintf('%.2f %s', std, plot_eV ? 'eV' : 'nm')
     set title plot_title offset 0,title_offset
     plot  \
-    f1(x) lw line_thickness title smoothed_plot_1_title, \
-    f2(x) lw line_thickness title smoothed_plot_2_title, \
-    f3(x) lw line_thickness title smoothed_plot_3_title, \
-    f4(x) lw line_thickness title smoothed_plot_4_title, \
-    f5(x) lw line_thickness title smoothed_plot_5_title, \
+    f1(x) lw smoothed_spectra_thickness title smoothed_plot_1_title, \
+    f2(x) lw smoothed_spectra_thickness title smoothed_plot_2_title, \
+    f3(x) lw smoothed_spectra_thickness title smoothed_plot_3_title, \
+    f4(x) lw smoothed_spectra_thickness title smoothed_plot_4_title, \
+    f5(x) lw smoothed_spectra_thickness title smoothed_plot_5_title, \
     0 title ''
 
 }

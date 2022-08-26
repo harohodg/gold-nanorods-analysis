@@ -8,19 +8,21 @@ CD_column=7
 
 #Determine what we are plotting
 #If not told otherwise will be AB spectra with eV xaxis
-if (!exists("plot_eV"))  plot_eV=1
-if (!exists("plot_AB"))  plot_AB=1
-if (!exists("plot_abs")) plot_abs=0
+if (!exists("plot_eV"))          plot_eV=1
+if (!exists("plot_AB"))          plot_AB=1
+if (!exists("plot_abs"))         plot_abs=0
+if (!exists("auto_scale"))       auto_scale=1
+if (!exists("arb_smoothed_max")) arb_smoothed_max=0
 
 #Determine where to look for files
 #What axis labels to use
 #What filename to use
-if (!exists("std")) std=1
-if (!exists("root_folder")) root_folder='..'
+if (!exists("std"))            std=1.0
+if (!exists("root_folder"))    root_folder='..'
 if (!exists("desired_xlabel")) desired_xlabel= plot_eV != 0 ? 'E (eV)' : 'λ (nm)'
 if (!exists("desired_ylabel")) desired_ylabel= plot_AB != 0 ? 'ε(L mol^{-1} cm^{-1})' : plot_abs != 0 ? 'abs(δε)(L mol^{-1} cm^{-1})' : 'δε(L mol^{-1} cm^{-1})'
 if (!exists("xmax")) xmax=6
-if (!exists("low")) low=0
+if (!exists("low"))  low=0
 if (!exists("high")) high=10*xmax
 
 plot_type  = plot_AB != 0 ? 'AB' : plot_abs != 0 ? 'AVCD' :'CD'
@@ -29,15 +31,30 @@ if (!exists("file_name")) file_name=sprintf('%s_Spectra_%.2f_to_%.2f_%s_std=%.2f
 plot_title = sprintf('Smoothed %s Spectra', plot_type)
 
 
+if (!exists("num_samples")) num_samples=1000
+if (!exists("vpixels"))     vpixels=6000
+if (!exists("hpixels"))     hpixels=vpixels/2
 
-num_samples=1000
-vpixels=1080
-hpixels=1920
+if (!exists("left_margin"))  left_margin=5
+if (!exists("right_margin")) right_margin=left_margin
+
+if (!exists("plot_font"))   plot_font='Helvetica,100'
+if (!exists("title_font"))  title_font=plot_font
+if (!exists("tics_font"))   tics_font=plot_font
+if (!exists("ylabel_font")) ylabel_font=plot_font
+if (!exists("xlabel_font")) xlabel_font=plot_font
+if (!exists("legend_font")) legend_font=plot_font
+
+
 xcolumn=plot_eV != 0 ? eV_column : nm_column
 ycolumn=plot_AB != 0 ? AB_column : CD_column
 
-title_offset=-3.5
-line_thickness=3
+
+if (!exists("title_offset")) title_offset=0
+if (!exists("ylabel_offset")) ylabel_offset=-2
+if (!exists("xlabel_offset")) xlabel_offset=0
+if (!exists("line_spectra_thickness")) line_spectra_thickness=1
+if (!exists("smoothed_spectra_thickness")) smoothed_spectra_thickness=5
 
 
 
@@ -94,17 +111,17 @@ load function(5, data_file5, std, low, high)
 #Gaussian functions of the form fi(x)=0+gaussian(x,a,b,s)+guassian(x,c,d,s)...
 #where a,b,c,d etc are from the data file
 
-set lmargin 20
-set rmargin 20
+set lmargin left_margin
+set rmargin right_margin
 set samples num_samples
-set terminal svg size vpixels,hpixels enhanced font 'Verdana,10'
+set terminal svg size hpixels,vpixels enhanced font plot_font
 set xrange [0:xmax]
 set output file_name
-set title font "Helvetica,20"
-set tics font "Helvetica,15"
-set ylabel font "Helvetica,20"
-set xlabel font "Helvetica,20"
-set key font "Helvetica,20"
+set title font  title_font
+set tics font   tics_font
+set ylabel font ylabel_font
+set xlabel font xlabel_font
+set key font    legend_font
 
 set multiplot layout 6 ,1 columnsfirst upwards
 #set tmargin 1          # switch off the top axis
@@ -113,8 +130,8 @@ set multiplot layout 6 ,1 columnsfirst upwards
 
 set key below
 set title plot_title offset 0,title_offset
-set xlabel desired_xlabel
-set ylabel desired_ylabel offset -4,0
+set xlabel desired_xlabel offset 0,xlabel_offset
+set ylabel desired_ylabel offset ylabel_offset,0
 
 
 ###################Plot smoothed data so we can set scale#######################
@@ -123,18 +140,20 @@ min(x,y) = (x < y) ? x : y
 
 set table 'stats.dat'
 plot  \
-f1(x) lw line_thickness title smoothed_plot_1_title, \
-f2(x) lw line_thickness title smoothed_plot_2_title, \
-f3(x) lw line_thickness title smoothed_plot_3_title, \
-f4(x) lw line_thickness title smoothed_plot_4_title, \
-f5(x) lw line_thickness title smoothed_plot_5_title, \
+f1(x) lw smoothed_spectra_thickness title smoothed_plot_1_title, \
+f2(x) lw smoothed_spectra_thickness title smoothed_plot_2_title, \
+f3(x) lw smoothed_spectra_thickness title smoothed_plot_3_title, \
+f4(x) lw smoothed_spectra_thickness title smoothed_plot_4_title, \
+f5(x) lw smoothed_spectra_thickness title smoothed_plot_5_title, \
 0 title ''
 
 SCALE_MAX=GPVAL_Y_MAX
 SCALE_MIN=GPVAL_Y_MIN
 
-smoothed_scale_max = max( abs(SCALE_MIN), SCALE_MAX )
-smoothed_scale_min = plot_AB !=0 ? 0 : plot_abs != 0 ? 0 : -smoothed_scale_max
+smoothed_scale_max    = max( abs(SCALE_MIN), SCALE_MAX )
+smooth_scaling_factor = arb_smoothed_max !=0 ? arb_smoothed_max/smoothed_scale_max : 1
+smoothed_scale_max    = arb_smoothed_max !=0 ? arb_smoothed_max : smoothed_scale_max
+smoothed_scale_min    = plot_AB !=0 ? 0 : plot_abs != 0 ? 0 : -smoothed_scale_max
 
 unset table
 system("rm stats.dat")
@@ -143,11 +162,11 @@ system("rm stats.dat")
 what_to_plot = plot_abs != 0 ? 'abs(column(ycolumn))' : '(column(ycolumn))'
 
 set table 'stats.dat'
-plot data_file1 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses, \
-data_file2 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses, \
-data_file3 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses, \
-data_file4 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses, \
-data_file5 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses
+plot data_file1 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses lw line_spectra_thickness, \
+data_file2 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses lw line_spectra_thickness, \
+data_file3 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses lw line_spectra_thickness, \
+data_file4 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses lw line_spectra_thickness, \
+data_file5 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses lw line_spectra_thickness
 
 SCALE_MAX=GPVAL_Y_MAX
 SCALE_MIN=GPVAL_Y_MIN
@@ -161,17 +180,18 @@ system("rm stats.dat")
 
 
 #################Now plot the smoothed data for real########################
-set yrange [smoothed_scale_min*1.1:smoothed_scale_max*1.1]
+if (auto_scale == 0) set yrange [smoothed_scale_min*1.1:smoothed_scale_max*1.1]
+
 #set bmargin at screen get_bmargin(1)
 set tmargin at screen get_tmargin(1)
 
 #Plot Smoothed plot
 plot  \
-f1(x) lw line_thickness title smoothed_plot_1_title, \
-f2(x) lw line_thickness title smoothed_plot_2_title, \
-f3(x) lw line_thickness title smoothed_plot_3_title, \
-f4(x) lw line_thickness title smoothed_plot_4_title, \
-f5(x) lw line_thickness title smoothed_plot_5_title, \
+f1(x)*smooth_scaling_factor lw smoothed_spectra_thickness title smoothed_plot_1_title, \
+f2(x)*smooth_scaling_factor lw smoothed_spectra_thickness title smoothed_plot_2_title, \
+f3(x)*smooth_scaling_factor lw smoothed_spectra_thickness title smoothed_plot_3_title, \
+f4(x)*smooth_scaling_factor lw smoothed_spectra_thickness title smoothed_plot_4_title, \
+f5(x)*smooth_scaling_factor lw smoothed_spectra_thickness title smoothed_plot_5_title, \
 0 title ''
 
 unset key #Don't add a legend for the other plots
@@ -181,21 +201,21 @@ unset xtics
 unset ylabel
 unset xlabel
 set bmargin 0
-set yrange [raw_scale_min*1.1:raw_scale_max*1.1]
+if (auto_scale == 0) set yrange [raw_scale_min*1.1:raw_scale_max*1.1]
 
 
 set bmargin at screen get_bmargin(2)
 set tmargin at screen get_tmargin(2)
 set title plot_1_title offset 0,title_offset
 plot \
-data_file1 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses
+data_file1 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses lw line_spectra_thickness
 
 set bmargin at screen get_bmargin(3)
 set tmargin at screen get_tmargin(3)
 set title plot_2_title offset 0,title_offset
 plot  \
 0 title '' linecolor rgb "black" lw 0, \
-data_file2 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses
+data_file2 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses lw line_spectra_thickness
 
 set bmargin at screen get_bmargin(4)
 set tmargin at screen get_tmargin(4)
@@ -203,7 +223,7 @@ set title plot_3_title offset 0,title_offset
 plot  \
 0 title '' linecolor rgb "black" lw 0, \
 0 title '' linecolor rgb "black" lw 0, \
-data_file3 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses
+data_file3 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses lw line_spectra_thickness
 
 set bmargin at screen get_bmargin(5)
 set tmargin at screen get_tmargin(5)
@@ -212,7 +232,7 @@ plot  \
 0 title '' linecolor rgb "black" lw 0, \
 0 title '' linecolor rgb "black" lw 0, \
 0 title '' linecolor rgb "black" lw 0, \
-data_file4 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses
+data_file4 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses lw line_spectra_thickness
 
 set bmargin at screen get_bmargin(6)
 set tmargin at screen get_tmargin(6)
@@ -222,7 +242,7 @@ plot  \
 0 title '' linecolor rgb "black" lw 0, \
 0 title '' linecolor rgb "black" lw 0, \
 0 title '' linecolor rgb "black" lw 0, \
-data_file5 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses
+data_file5 using  (column(xcolumn)):((column(xcolumn) >= low && column(xcolumn) <= high ? @what_to_plot : 1/0)) with impulses lw line_spectra_thickness
 
 
 
