@@ -1,0 +1,51 @@
+ribColors=["red", "yellow", "orange", "brown", "cyan", "green", "maroon", "blue"]
+
+function color_nanorod_ribs(atomsPerRib, frameNumber, ribColors)
+{
+for (var rib FROM [0,7]){ ribAtoms=[]; for (var atomNumber FROM [rib*atomsPerRib+1,(rib+1)*atomsPerRib]) {ribAtoms.push(atomNumber) }; select atomno=ribAtoms and @{frameNumber};color balls @{ribColors[rib+1]}; color bonds @{ribColors[rib+1]} };
+}
+
+//Add the Jmol text to bottom right
+frank ON
+set background white
+
+//Load in the geometries
+load files "Desktop/tmp_files/jmol-14.32.82/geometries/Au24_shuffled.xyz" "Desktop/tmp_files/jmol-14.32.82/geometries/Au32_shuffled.xyz" "Desktop/tmp_files/jmol-14.32.82/geometries/Au40_shuffled.xyz" "Desktop/tmp_files/jmol-14.32.82/geometries/Au48_shuffled.xyz" "Desktop/tmp_files/jmol-14.32.82/geometries/Au56_shuffled.xyz"
+
+//Now color each rib on each nanorod
+color_nanorod_ribs(3,'1.1', ribColors);
+color_nanorod_ribs(4,'2.1', ribColors);
+color_nanorod_ribs(5,'3.1', ribColors);
+color_nanorod_ribs(6,'4.1', ribColors);
+color_nanorod_ribs(7,'5.1', ribColors);
+
+
+//Now export the default view
+write frames {*} "front.png"
+
+//Now we rotate through the various views and export
+
+//rotate x 90
+write frames {*} "top.png"
+
+rotate x 90
+write frames {*} "back.png"
+
+rotate x 90
+write frames {*} "bottom.png"
+
+
+//Reset the view and rotate so we can see the ends
+reset
+rotate y 90
+write frames {*} "left.png"
+
+reset
+rotate y -90
+write frames {*} "right.png"
+
+//And finally the "best" view
+reset
+rotate best
+write frames {*} "best.png"
+
