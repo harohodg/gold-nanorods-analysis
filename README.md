@@ -8,4 +8,4 @@ Code and data for the gold nanorods analysis
 - scripts
   - Gaussian_scripts : Example scripts used with Gaussian 09
   - Miepy_scripts    : Scripts used with the miepy calculations
-  - plotting_scripts : Scripts used to plot the Gaussian spectra data using gnuplot 5.2.
+  - plotting_scripts : Scripts used to plot the Gaussian spectra data using Plotly 5.11.0 and kaleido.
