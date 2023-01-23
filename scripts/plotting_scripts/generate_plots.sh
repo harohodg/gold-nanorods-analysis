@@ -1,8 +1,47 @@
 #!/usr/bin/env bash
 
+
 #MANUSCRIPT PLOTS
+##Miepy plots
+echo 'Manuscript Miepy AB'
+python3 plot_miepy_max_wavelengths.py \
+'--min_numerator=1' \
+'--max_numerator=11' \
+'--marker_size=1000' \
+'--y_range' ' 515' '570' \
+'--y_tics' '520' '530' '540' '550' '560' \
+'--spectra_type' 'AB' \
+'--plot_title' 'AB Max Wavelength/Energy' \
+'--output_file' 'miepy_AB_plot.svg' \
+'../miepy_results'
+
+echo 'Manuscript Miepy CD same scale'
+python3 plot_miepy_max_wavelengths.py \
+'--min_numerator=1' \
+'--max_numerator=11' \
+'--marker_size=1000' \
+'--y_range' ' 515' '570' \
+'--y_tics' '520' '530' '540' '550' '560' \
+'--spectra_type' 'CD' \
+'--plot_title' 'CD Max Wavelength/Energy' \
+'--output_file' 'miepy_CD_plot-same_scale.svg' \
+'../miepy_results'
+
+echo 'Manuscript Miepy CD different scale'
+python3 plot_miepy_max_wavelengths.py \
+'--min_numerator=1' \
+'--max_numerator=11' \
+'--marker_size=1000' \
+'--y_range'  '540' '570' \
+'--y_tics' '545' '550' '555' '560' '565' \
+'--spectra_type' 'CD' \
+'--plot_title' 'CD Max Wavelength/Energy' \
+'--output_file' 'miepy_CD_plot-different_scale.svg' \
+'../miepy_results'
+
 
 #AB Spectra, scale adjusted to max = 10
+echo 'Manuscript AB Spectra'
 python3 plot_manuscript_spectra.py \
 '--output_file' 'manuscript_AB_spectra.svg' \
 '--spectra_files' '../Au24_264states_Spectra.txt' '../Au32_224states_Spectra.txt' '../Au40_800states_Spectra.txt' '../Au48_432states_Spectra.txt' '../Au56_392states_Spectra.txt' \
@@ -26,6 +65,7 @@ python3 plot_manuscript_spectra.py \
 '--stick_line_width' 6 \
 
 #CD Spectra, scale adjusted to max = 10
+echo 'Manuscript CD Spectra'
 python3 plot_manuscript_spectra.py \
 '--output_file' 'manuscript_CD_spectra.svg' \
 '--spectra_files' '../Au24_264states_Spectra.txt' '../Au32_224states_Spectra.txt' '../Au40_800states_Spectra.txt' '../Au48_432states_Spectra.txt' '../Au56_392states_Spectra.txt' \
@@ -51,6 +91,7 @@ python3 plot_manuscript_spectra.py \
 '--stick_line_width' 6 \
 
 #AVCD Spectra, scale adjusted to max = 10
+echo 'Manuscript AVCD Spectra'
 python3 plot_manuscript_spectra.py \
 '--output_file' 'manuscript_AVCD_spectra.svg' \
 '--spectra_files' '../Au24_264states_Spectra.txt' '../Au32_224states_Spectra.txt' '../Au40_800states_Spectra.txt' '../Au48_432states_Spectra.txt' '../Au56_392states_Spectra.txt' \
@@ -78,6 +119,7 @@ python3 plot_manuscript_spectra.py \
 #SUPPLEMENTARY PLOTS
 
 #AB Spectra, smooth scale adjusted to max = 10, stick spectra same range, auto max
+echo 'SI AB auto-max Spectra'
 python3 plot_manuscript_spectra.py \
 '--output_file' 'supplementary_AB_spectra-auto_max.svg' \
 '--spectra_files' '../Au24_264states_Spectra.txt' '../Au32_224states_Spectra.txt' '../Au40_800states_Spectra.txt' '../Au48_432states_Spectra.txt' '../Au56_392states_Spectra.txt' \
@@ -102,6 +144,7 @@ python3 plot_manuscript_spectra.py \
 '--stick_spectra_label_x_loc'    -0.04 \
 
 #CD Spectra, smooth scale adjusted to max = 10, stick spectra same range, auto max
+echo 'SI CD auto-max Spectra'
 python3 plot_manuscript_spectra.py \
 '--output_file' 'supplementary_CD_spectra-auto_max.svg' \
 '--spectra_files' '../Au24_264states_Spectra.txt' '../Au32_224states_Spectra.txt' '../Au40_800states_Spectra.txt' '../Au48_432states_Spectra.txt' '../Au56_392states_Spectra.txt' \
@@ -128,6 +171,7 @@ python3 plot_manuscript_spectra.py \
 
 
 #AVCD Spectra, smooth scale adjusted to max = 10, stick spectra same range, auto max
+echo 'SI AVCD auto-max Spectra'
 python3 plot_manuscript_spectra.py \
 '--output_file' 'supplementary_AVCD_spectra-auto_max.svg' \
 '--spectra_files' '../Au24_264states_Spectra.txt' '../Au32_224states_Spectra.txt' '../Au40_800states_Spectra.txt' '../Au48_432states_Spectra.txt' '../Au56_392states_Spectra.txt' \
@@ -154,6 +198,7 @@ python3 plot_manuscript_spectra.py \
 
 
 #AB with variable gaussian smoothing
+echo 'SI AB variable smoothing Spectra'
 python3 plot_supplementary_spectra.py \
 '--output_file' 'supplementary_AB_spectra-variable_smoothing.svg' \
 '--spectra_files' '../Au24_264states_Spectra.txt' '../Au32_224states_Spectra.txt' '../Au40_800states_Spectra.txt' '../Au48_432states_Spectra.txt' '../Au56_392states_Spectra.txt' \
@@ -175,6 +220,7 @@ python3 plot_supplementary_spectra.py \
 
 
 #CD with variable gaussian smoothing
+echo 'SI CD variable smoothing Spectra'
 python3 plot_supplementary_spectra.py \
 '--output_file' 'supplementary_CD_spectra-variable_smoothing.svg' \
 '--spectra_files' '../Au24_264states_Spectra.txt' '../Au32_224states_Spectra.txt' '../Au40_800states_Spectra.txt' '../Au48_432states_Spectra.txt' '../Au56_392states_Spectra.txt' \
@@ -197,6 +243,7 @@ python3 plot_supplementary_spectra.py \
 
 
 #AVCD with variable gaussian smoothing
+echo 'SI AVCD variable smoothing Spectra'
 python3 plot_supplementary_spectra.py \
 '--output_file' 'supplementary_AVCD_spectra-variable_smoothing.svg' \
 '--spectra_files' '../Au24_264states_Spectra.txt' '../Au32_224states_Spectra.txt' '../Au40_800states_Spectra.txt' '../Au48_432states_Spectra.txt' '../Au56_392states_Spectra.txt' \
