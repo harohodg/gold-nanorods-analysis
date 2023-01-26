@@ -11,17 +11,20 @@ from plotly.subplots import make_subplots
 
 from plotting_functions import *
 
-
 DEFAULT_OUTPUT_FILE            = 'test.svg'
 DEFAULT_OVERALL_PLOT_HEIGHT    = 1000
 DEFAULT_FONT_NAME              = 'Courier New, monospace'
-DEFAULT_FONT_SIZE              = 20
+DEFAULT_TICS_FONT_NAME         = 'Arial Black'
+DEFAULT_LEGEND_FONT_SIZE       = 39
+DEFAULT_FONT_SIZE              = 40
+DEFAULT_TICS_FONT_SIZE         = 20
 DEFAULT_TEXT_COLOR             = 'Black'
 
 DEFAULT_SMOOTHED_SPECTRA_LABEL = 'Smoothed Spectra<br>(arb. units)'
 DEFAULT_STICK_SPECTRA_LABEL    = 'Stick Spectra (arb. units)'
 DEFAULT_SPECTRA_LABEL_X        = -0.05
-DEFAULT_LEGEND_OFFSET          = -0.05
+DEFAULT_LEGEND_Y_OFFSET        = -0.05
+DEFAULT_LEGEND_X_OFFSET        = -0.20
 
 
 DEFAULT_SMOOTH_LINE_WIDTH      = 3
@@ -34,6 +37,9 @@ DEFAULT_NUM_POINTS             = 1000
 DEFAULT_X_AXIS = 'eV'
 AB_COLUMN = 'Absorbance(f)'
 CD_COLUMN = 'R(length)'
+
+
+# In[3]:
 
 
 parser = argparse.ArgumentParser( prog='plot_manuscript_spectra.py', description='Generate one of the manuscript plots')
@@ -59,17 +65,25 @@ parser.add_argument('--smoothed_spectra_label_x_loc', type=float, default=DEFAUL
 parser.add_argument('--smoothed_spectra_label_y_loc', type=float)
 parser.add_argument('--stick_spectra_label_x_loc',    type=float, default=DEFAULT_SPECTRA_LABEL_X)
 parser.add_argument('--stick_spectra_label_y_loc',    type=float)
-parser.add_argument('--legend_offset',                type=float, default=DEFAULT_LEGEND_OFFSET)
+parser.add_argument('--legend_x_offset',              type=float, default=DEFAULT_LEGEND_X_OFFSET)
+parser.add_argument('--legend_y_offset',              type=float, default=DEFAULT_LEGEND_Y_OFFSET)
 parser.add_argument('--overall_plot_height',          type=int, default=DEFAULT_OVERALL_PLOT_HEIGHT)
 
 parser.add_argument('--smooth_line_width', type=int, default=DEFAULT_SMOOTH_LINE_WIDTH)
 parser.add_argument('--stick_line_width',  type=int, default=DEFAULT_STICK_LINE_WIDTH)
 
 parser.add_argument('--x_axis_label')
-parser.add_argument('--font_name',              default=DEFAULT_FONT_NAME)
-parser.add_argument('--font_size',              default=DEFAULT_FONT_SIZE)
-parser.add_argument('--text_color',             default=DEFAULT_TEXT_COLOR)
+parser.add_argument('--font_name',                  default=DEFAULT_FONT_NAME)
+parser.add_argument('--tics_font_name',             default=DEFAULT_TICS_FONT_NAME)
+parser.add_argument('--font_size',        type=int, default=DEFAULT_FONT_SIZE)
+parser.add_argument('--tics_font_size',   type=int, default=DEFAULT_TICS_FONT_SIZE)
+parser.add_argument('--legend_font_size', type=int, default=DEFAULT_LEGEND_FONT_SIZE)
+parser.add_argument('--text_color',                 default=DEFAULT_TEXT_COLOR)
 parser.add_argument('--plot_labels', nargs='+')
+parser.add_argument('--left_margin',   type=int)
+parser.add_argument('--right_margin',  type=int)
+parser.add_argument('--top_margin',    type=int)
+parser.add_argument('--bottom_margin', type=int)
 
 parser.add_argument('--min_x', type=float)
 parser.add_argument('--max_x', type=float)
@@ -84,8 +98,35 @@ parser.add_argument('--smoothed_plot_height', type=float, default=DEFAULT_SMOOTH
 parser.add_argument('--interplot_distance',   type=float, default=DEFAULT_INTER_PLOT_DISTANCE)
 parser.add_argument('--gaussian_std',         type=float, default=DEFAULT_GAUSSIAN_STD)
 
-
 args = parser.parse_args()
+#args = parser.parse_args(['--output_file', 'test.svg',
+#                          '--spectra_files','../Au24_264states_Spectra.txt','../Au32_224states_Spectra.txt','../Au40_800states_Spectra.txt','../Au48_432states_Spectra.txt','../Au56_392states_Spectra.txt',
+#                          '--plot_labels','Au<sub>24</sub>','Au<sub>32</sub>','Au<sub>40</sub>','Au<sub>48</sub>','Au<sub>56</sub>',
+#                          '--min_x', '1.7', '--max_x', '4.2',
+#                          '--x_range', '0', '6',
+#                          '--x_tics', '0','1','2','3','4','5','6',
+#                          '--smooth_max_y', '10',
+#                          '--stick_max_y', '10',
+#                          '--smooth_y_range','0','15',
+#                          '--smooth_y_tics', '0', '5', '10',
+#                          '--stick_y_range', '0', '15',
+#                          '--stick_y_tics', '0', '5', '10',
+#                          '--smoothed_spectra_label','Smoothed AB Spectra<br>(arb. units)',
+#                          '--stick_spectra_label','Stick AB Spectra (arb. units)',
+#                          '--x_axis_label','E (eV)',
+#                          '--overall_plot_height','1800',
+#                          '--y_axis','Absorbance(f)',
+#                          '--smooth_line_width', '4',
+#                          '--stick_line_width','6',
+#                          '--font_size', '30',
+#                          '--legend_font_size', '39',
+#                          '--legend_y_offset', '-0.07',
+#                          '--legend_x_offset', '-0.20',
+#                          '--tics_font_size', '20'
+#                         ])
+
+
+# In[5]:
 
 
 assert args.plot_labels is None or len(args.spectra_files) == len(args.plot_labels)
@@ -155,7 +196,6 @@ if args.stick_min_y is not None or args.stick_max_y is not None:
         stick_scaling_ratio = min( [x for x in [stick_min_ratio, stick_max_ratio] if x is not np.nan] )
         stick_spectra_data[index][y_column] = stick_scaling_ratio*data[y_column]
 
-
 num_plots    = num_files + 1
 plot_margins = {'yaxis'+str(index+1):{'domain':[plot_bottom_margin(index), plot_top_margin(index)]} for index in range(num_plots)}
 colors = cycle(px.colors.qualitative.Plotly[:num_files])
@@ -168,7 +208,12 @@ stick_spectra_label_y_loc = args.stick_spectra_label_y_loc if args.stick_spectra
 
 
 fig = make_subplots(rows=num_plots, cols=1, start_cell="bottom-left", shared_xaxes=True, subplot_titles=[], vertical_spacing=args.interplot_distance)
-fig.update_layout(plot_margins, showlegend=True, height=args.overall_plot_height, font=dict(family=args.font_name, size=args.font_size, color=args.text_color))
+fig.update_layout(plot_margins,
+                  showlegend=True,
+                  height=args.overall_plot_height,
+                  font=dict(family=args.font_name, size=args.font_size, color=args.text_color),
+                  margin=dict(l=args.left_margin, r=args.right_margin, t=args.top_margin, b=args.bottom_margin)
+                 )
 
 #Plot the individual smoothed data curves
 for index, curve in enumerate( smoothed_data ):
@@ -184,9 +229,11 @@ for index, data in enumerate(stick_spectra_data):
 fig.update_layout(legend=dict(
     orientation="h",
     yanchor="top",
-    y=args.legend_offset,
-    xanchor="center",
-    x=0.5,
+    y=args.legend_y_offset,
+    xanchor="left",
+    x=args.legend_x_offset,
+    itemsizing ='constant',
+    font=dict(size=args.legend_font_size)
 ))
 
 #Add x axis label if provided
@@ -226,10 +273,10 @@ if args.stick_y_tics is not None:
     for plot_row in range(2, num_plots+1):
         fig.update_yaxes(tickmode = 'array', tickvals = args.stick_y_tics, row=plot_row, col=1)
 
-
+fig.update_xaxes(tickfont_size=args.tics_font_size, tickfont_family=args.tics_font_name)
+fig.update_yaxes(tickfont_size=args.tics_font_size, tickfont_family=args.tics_font_name)
 #fig.show()
 #export_html(fig, args.output_file)
 fig.write_image(args.output_file)
-
 
 

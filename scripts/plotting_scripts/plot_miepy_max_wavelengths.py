@@ -60,6 +60,7 @@ parser.add_argument('--min_numerator', type=int, default=DEFAULT_MIN_NUMERATOR)
 parser.add_argument('--max_numerator', type=int, default=DEFAULT_MAX_NUMERATOR)
 parser.add_argument('--y_range', type=float, nargs=2)
 parser.add_argument('--y_tics',  type=float, nargs='+')
+parser.add_argument('--degrees', action='store_true', default=False)
 parser.add_argument('--miepy_calc_type', choices=['scat', 'absorb', 'extinct'], default=DEFAULT_MIEPY_CALC_TYPE)
 parser.add_argument('--spectra_type', choices=['AB','CD'], default=DEFAULT_SPECTRA_TYPE)
 parser.add_argument('input_folder')
@@ -140,7 +141,7 @@ for atoms_index, num_atoms in enumerate(atoms):
     plot_label = '$Au_{'+f'{num_atoms}'+'}$'
     y_axis_column = f'Average_{args.miepy_calc_type}_{args.spectra_type}_MAX_WAVELENGTH'
 
-    x_axis_data  = twist_in_degrees( data_to_plot['numerator'] )
+    x_axis_data  = twist_in_degrees( data_to_plot['numerator'] ) if args.degrees is True else data_to_plot['numerator']
     y_axis_data  = data_to_plot[y_axis_column]
     y_axis_data2 = nm_to_eV( y_axis_data )
 
@@ -156,7 +157,7 @@ if args.y_range:
 
 axes.legend(bbox_to_anchor=(0.5,-0.15), loc="upper center", ncols=len(atoms), handletextpad=0.01, columnspacing=0.25)
 axes.set_title( args.plot_title )
-axes.set_xlabel('twist (degrees)')
+axes.set_xlabel('twist (degrees)' if args.degrees is True else 'twist')
 axes.set_ylabel('Max wavelength (nm)')
 axes2.set_ylabel('Max energy (eV)')
 axes.xaxis.set_minor_formatter(mticker.FormatStrFormatter('%.2f'))
