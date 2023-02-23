@@ -4,8 +4,10 @@
 import argparse, copy, re, os
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.ticker as mticker
+from itertools import cycle
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 FILE_DATA_COLUMN_DATA_TYPES = {'atoms' : int,
@@ -33,28 +35,29 @@ FILE_REGEX = re.compile(FILE_REGEX_PATTERN, flags=0)
 nm_to_eV = lambda nm : 1239.8 / nm
 
 DEFAULT_OUTPUT_FILE   = 'test.svg'
-DEFAULT_MARKER_SIZE   = 100
+DEFAULT_MARKER_SIZE   = 30
 DEFAULT_MIN_NUMERATOR = -np.inf
 DEFAULT_MAX_NUMERATOR =  np.inf
 DEFAULT_SPECTRA_TYPE  = 'AB'
-DEFAULT_FONT_SIZE     = 40
-DEFAULT_TITLE_FONT_SIZE       = DEFAULT_FONT_SIZE
-DEFAULT_AXIS_LABELS_FONT_SIZE = DEFAULT_FONT_SIZE
-DEFAULT_LEGEND_FONT_SIZE      = DEFAULT_FONT_SIZE
-DEFAULT_FIGURE_DPI  = 100
-DEFAULT_FIGURE_SIZE = (20,10)
-DEFAULT_MIEPY_CALC_TYPE = 'absorb'
 
+DEFAULT_OVERALL_PLOT_HEIGHT    = 1000
+DEFAULT_FONT_NAME              = 'Times New Roman'
+DEFAULT_TICS_FONT_NAME         = 'Times New Roman'
+DEFAULT_LEGEND_FONT_SIZE       = 39
+DEFAULT_FONT_SIZE              = 40
+DEFAULT_TICS_FONT_SIZE         = 40
+DEFAULT_TEXT_COLOR             = 'Black'
+
+
+DEFAULT_LEGEND_X_OFFSET        = 0.3
+DEFAULT_LEGEND_Y_OFFSET        = -0.15
+
+
+DEFAULT_MIEPY_CALC_TYPE = 'absorb'
 
 parser = argparse.ArgumentParser( prog='plot_miepy_max_wavelengths.py', description='Generate one of miepy plots')
 parser.add_argument('--output_file',   default=DEFAULT_OUTPUT_FILE)
 parser.add_argument('--marker_size',type=int, default=DEFAULT_MARKER_SIZE)
-parser.add_argument('--font_size',  type=int, default=DEFAULT_FONT_SIZE)
-parser.add_argument('--title_font_size', type=int, default=DEFAULT_TITLE_FONT_SIZE)
-parser.add_argument('--axis_labels_font_size', type=int, default=DEFAULT_AXIS_LABELS_FONT_SIZE)
-parser.add_argument('--legend_font_size', type=int, default=DEFAULT_LEGEND_FONT_SIZE)
-parser.add_argument('--figure_size', type=int, nargs=2, default=DEFAULT_FIGURE_SIZE)
-parser.add_argument('--figure_dpi', type=int, default=DEFAULT_FIGURE_DPI)
 parser.add_argument('--plot_title', default='')
 parser.add_argument('--min_numerator', type=int, default=DEFAULT_MIN_NUMERATOR)
 parser.add_argument('--max_numerator', type=int, default=DEFAULT_MAX_NUMERATOR)
@@ -63,19 +66,30 @@ parser.add_argument('--y_tics',  type=float, nargs='+')
 parser.add_argument('--degrees', action='store_true', default=False)
 parser.add_argument('--miepy_calc_type', choices=['scat', 'absorb', 'extinct'], default=DEFAULT_MIEPY_CALC_TYPE)
 parser.add_argument('--spectra_type', choices=['AB','CD'], default=DEFAULT_SPECTRA_TYPE)
+parser.add_argument('--overall_plot_height',          type=int, default=DEFAULT_OVERALL_PLOT_HEIGHT)
+
+parser.add_argument('--font_name',                  default=DEFAULT_FONT_NAME)
+parser.add_argument('--tics_font_name',             default=DEFAULT_TICS_FONT_NAME)
+parser.add_argument('--font_size',        type=int, default=DEFAULT_FONT_SIZE)
+parser.add_argument('--tics_font_size',   type=int, default=DEFAULT_TICS_FONT_SIZE)
+parser.add_argument('--legend_font_size', type=int, default=DEFAULT_LEGEND_FONT_SIZE)
+parser.add_argument('--text_color',                 default=DEFAULT_TEXT_COLOR)
+
+parser.add_argument('--legend_x_offset',              type=float, default=DEFAULT_LEGEND_X_OFFSET)
+parser.add_argument('--legend_y_offset',              type=float, default=DEFAULT_LEGEND_Y_OFFSET)
+
 parser.add_argument('input_folder')
-
-
 args = parser.parse_args()
 #args = parser.parse_args(['--min_numerator=1',
 #                          '--max_numerator=11',
 #                          '--y_range',' 540', '570',
 #                          '--y_tics', '545', '550', '555', '560', '565',
-#                          '--marker_size', '1000',
+#                          '--marker_size', '30',
 #                          '--spectra_type', 'CD',
 #                          '--plot_title', 'CD Max Wavelength/Energy',
 #                          '../miepy_results'])
 assert args.min_numerator <= args.max_numerator
+
 
 data_sets = pd.DataFrame( [ dict({'fname':f}, **FILE_REGEX.match(f).groupdict() ) for f in os.listdir(args.input_folder) if FILE_REGEX.match(f) ] )
 for column in FILE_DATA_COLUMN_DATA_TYPES:
@@ -103,7 +117,6 @@ for index in range( len(filtered_data_sets) ):
             averaged_column_name = f'Average_{label}_{spectra}'
             filtered_data_sets.iloc[index]['data'][averaged_column_name] = (1/3)*filtered_data_sets.iloc[index]['data'][first_column] + (2/3)*filtered_data_sets.iloc[index]['data'][second_column]
 
-
 stats = []
 for index in range( len(filtered_data_sets) ):
     data_set = copy.deepcopy( filtered_data_sets.iloc[index].to_dict() )
@@ -126,44 +139,43 @@ for index in range( len(filtered_data_sets) ):
 stats_table = pd.DataFrame.from_dict(stats)
 twist_in_degrees = lambda twist : np.degrees( twist*(2*np.pi/(7*stats_table.iloc[0]['denominator'])) )
 
-#Set main plot settings
-plt.rc('font', size=args.font_size) #controls default text size
-plt.rc('axes', titlesize=args.title_font_size) #fontsize of the title
-plt.rc('axes', labelsize=args.axis_labels_font_size) #fontsize of the x and y labels
-plt.rc('legend', fontsize=args.legend_font_size) #fontsize of the legend
 
-atoms = sorted( stats_table['atoms'].unique() )
-fig, axes = plt.subplots( 1, 1, figsize=tuple(args.figure_size), dpi=args.figure_dpi, sharex=True, sharey=True)
-axes2 = axes.twinx()
+num_labels = len(stats_table.atoms.unique())
+colors = cycle(px.colors.qualitative.Plotly[:num_labels])
+fig = make_subplots(specs=[[{"secondary_y": True}]])
+fig.update_layout(showlegend=True,
+                  height=args.overall_plot_height,width=2*args.overall_plot_height,
+                  font=dict(family=args.font_name, size=args.font_size, color=args.text_color),
+#                  margin=dict(l=args.left_margin, r=args.right_margin, t=args.top_margin, b=args.bottom_margin)
+                 legend=dict(orientation="h", yanchor="top", y=args.legend_y_offset, xanchor="left", x=args.legend_x_offset, itemsizing ='constant', font=dict(size=args.legend_font_size) ),
+                 title=dict(text=args.plot_title, x=0.5,y=0.95, xanchor='center',yanchor='top')
+                 )
 
-for atoms_index, num_atoms in enumerate(atoms):
+
+for num_atoms in sorted( stats_table['atoms'].unique() ):
     data_to_plot = stats_table.query(f'atoms == {num_atoms}').sort_values(by = 'numerator')
-    plot_label = '$Au_{'+f'{num_atoms}'+'}$'
+    plot_label = f'Au<sub>{num_atoms}</sub>'
     y_axis_column = f'Average_{args.miepy_calc_type}_{args.spectra_type}_MAX_WAVELENGTH'
 
     x_axis_data  = twist_in_degrees( data_to_plot['numerator'] ) if args.degrees is True else data_to_plot['numerator']
     y_axis_data  = data_to_plot[y_axis_column]
     y_axis_data2 = nm_to_eV( y_axis_data )
+    trace_color = next(colors)
 
-    axes.scatter(  x_axis_data, y_axis_data,  label=plot_label, marker='.', s=args.marker_size )
+    fig.add_trace(go.Scatter(x=x_axis_data, y=y_axis_data, mode='markers', marker=dict(size=args.marker_size, color=trace_color), name=plot_label, showlegend=True),  secondary_y=False)
+    fig.add_trace(go.Scatter(x=x_axis_data, y=y_axis_data2, showlegend=False, visible=False), secondary_y=True)
 
-if args.y_tics:
-    axes.set_yticks(args.y_tics)
-    axes2.set_yticks( nm_to_eV(np.array(args.y_tics)) )
-
-if args.y_range:
-    axes.set_ylim( args.y_range)
-    axes2.set_ylim( nm_to_eV( np.array(args.y_range) ) )
-
-axes.legend(bbox_to_anchor=(0.5,-0.15), loc="upper center", ncols=len(atoms), handletextpad=0.01, columnspacing=0.25)
-axes.set_title( args.plot_title )
-axes.set_xlabel('twist (degrees)' if args.degrees is True else 'twist')
-axes.set_ylabel('Max wavelength (nm)')
-axes2.set_ylabel('Max energy (eV)')
-axes.xaxis.set_minor_formatter(mticker.FormatStrFormatter('%.2f'))
-axes2.yaxis.set_major_formatter(mticker.FormatStrFormatter('%.2f'))
+fig.update_yaxes(range=(args.y_range[0],args.y_range[-1]), tickmode='array', tickvals=args.y_tics, secondary_y=False)
+fig.update_yaxes(range=(nm_to_eV(args.y_range[0]), nm_to_eV(args.y_range[-1])), tickmode='array', tickvals = [nm_to_eV(tic) for tic in args.y_tics], secondary_y=True)
 
 
-plt.savefig( args.output_file, bbox_inches='tight' )
-plt.close('all')
+fig.update_xaxes(tickfont_size=args.tics_font_size, tickfont_family=args.tics_font_name, title='twist')
+fig.update_yaxes(tickfont_size=args.tics_font_size, tickfont_family=args.tics_font_name, secondary_y=False)
+fig.update_yaxes(tickfont_size=args.tics_font_size, tickfont_family=args.tics_font_name, secondary_y=True)
 
+fig.update_layout(xaxis_title='twist (degrees)' if args.degrees is True else 'twist')
+fig.update_yaxes(title='Max Wavelength (nm)', secondary_y=False)
+fig.update_yaxes(title='Max Energy (eV)', secondary_y=True, showgrid=False, tickformat=".2f")
+
+#fig.show()
+fig.write_image(args.output_file)

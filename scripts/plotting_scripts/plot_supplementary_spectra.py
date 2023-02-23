@@ -13,8 +13,8 @@ from plotting_functions import *
 
 DEFAULT_OUTPUT_FILE            = 'test.svg'
 DEFAULT_OVERALL_PLOT_HEIGHT    = 1000
-DEFAULT_FONT_NAME              = 'Courier New, monospace'
-DEFAULT_TICS_FONT_NAME         = 'Arial Black'
+DEFAULT_FONT_NAME              = 'Times New Roman'
+DEFAULT_TICS_FONT_NAME         = 'Times New Roman'
 DEFAULT_LEGEND_FONT_SIZE       = 39
 DEFAULT_FONT_SIZE              = 40
 DEFAULT_TICS_FONT_SIZE         = 20
@@ -22,7 +22,7 @@ DEFAULT_TEXT_COLOR             = 'Black'
 
 
 DEFAULT_SMOOTHED_SPECTRA_LABEL = 'Smoothed Spectra<br>(arb. units)'
-DEFAULT_SPECTRA_LABEL_X        = -0.05
+DEFAULT_SPECTRA_LABEL_X        = -0.07
 DEFAULT_SPECTRA_LABEL_Y        = 0.5
 DEFAULT_LEGEND_X_OFFSET        = -0.20
 DEFAULT_LEGEND_Y_OFFSET         = -0.05
@@ -44,7 +44,7 @@ parser = argparse.ArgumentParser( prog='plot_supplementary_spectra.py', descript
 parser.add_argument('--output_file',   default=DEFAULT_OUTPUT_FILE)
 parser.add_argument('--spectra_files', nargs='+')
 
-#parser.add_argument('--plot_type', choices=['AB','CD'], default=AB_COLUMN)
+parser.add_argument('--plot_type', choices=['AB','CD'], default='AB')
 parser.add_argument('--plot_abs',  action="store_true")
 parser.add_argument('--x_axis',    choices=['eV','nm'], default=DEFAULT_X_AXIS)
 parser.add_argument('--y_axis',    choices=['Absorbance(f)','R(length)','R(velocity)'], default=AB_COLUMN )
@@ -141,7 +141,7 @@ smooth_x_min       = x_min if args.x_range is None else args.x_range[0]
 smooth_x_max       = x_max if args.x_range is None else args.x_range[-1]
 smooth_x_values    = np.linspace(smooth_x_min, smooth_x_max, args.num_points)
 
-if y_column == AB_COLUMN:
+if args.plot_type == 'AB':
     smoothing_function = lambda x,y,std, x_values : Se(y,std)*gaussian(x_values,x,std)
 else:
     smoothing_function = lambda x,y,std, x_values : Sde(y,x,std)*gaussian(x_values,x,std)

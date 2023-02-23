@@ -8,7 +8,6 @@ echo 'Manuscript Miepy AB'
 python3 plot_miepy_max_wavelengths.py \
 '--min_numerator=1' \
 '--max_numerator=11' \
-'--marker_size=1000' \
 '--y_range' ' 515' '570' \
 '--y_tics' '520' '530' '540' '550' '560' \
 '--spectra_type' 'AB' \
@@ -21,7 +20,6 @@ echo 'Manuscript Miepy CD'
 python3 plot_miepy_max_wavelengths.py \
 '--min_numerator=1' \
 '--max_numerator=11' \
-'--marker_size=1000' \
 '--y_range'  '540' '570' \
 '--y_tics' '545' '550' '555' '560' '565' \
 '--spectra_type' 'CD' \
@@ -53,7 +51,10 @@ python3 plot_manuscript_spectra.py \
 '--y_axis' 'Absorbance(f)' \
 '--smooth_line_width' 4 \
 '--stick_line_width' 6 \
-'--top_margin' ${TOP_MARGIN}
+'--top_margin' ${TOP_MARGIN} \
+'--font_name' 'Times New Roman' \
+'--tics_font_name' 'Times New Roman' \
+
 
 #CD Spectra, scale adjusted to max = 10
 echo 'Manuscript CD Spectra'
@@ -80,7 +81,9 @@ python3 plot_manuscript_spectra.py \
 '--y_axis' 'R(length)' \
 '--smooth_line_width' 4 \
 '--stick_line_width' 6 \
-'--top_margin' ${TOP_MARGIN}
+'--top_margin' ${TOP_MARGIN} \
+'--font_name' 'Times New Roman' \
+'--tics_font_name' 'Times New Roman' \
 
 #AVCD Spectra, scale adjusted to max = 10
 echo 'Manuscript AVCD Spectra'
@@ -106,8 +109,9 @@ python3 plot_manuscript_spectra.py \
 '--smooth_line_width' 4 \
 '--stick_line_width' 6 \
 '--plot_abs' \
-'--top_margin' ${TOP_MARGIN}
-
+'--top_margin' ${TOP_MARGIN} \
+'--font_name' 'Times New Roman' \
+'--tics_font_name' 'Times New Roman' \
 
 
 #SUPPLEMENTARY PLOTS
@@ -136,7 +140,9 @@ python3 plot_manuscript_spectra.py \
 '--stick_y_tics' 0 1 2 \
 '--smoothed_spectra_label_x_loc' -0.04 \
 '--stick_spectra_label_x_loc'    -0.04 \
-'--top_margin' ${TOP_MARGIN}
+'--top_margin' ${TOP_MARGIN} \
+'--font_name' 'Times New Roman' \
+'--tics_font_name' 'Times New Roman' \
 
 #CD Spectra, smooth scale adjusted to max = 10, stick spectra same range, auto max
 echo 'SI CD auto-max Spectra'
@@ -164,7 +170,9 @@ python3 plot_manuscript_spectra.py \
 '--smoothed_spectra_label_x_loc' -0.04 \
 '--stick_spectra_label_x_loc'    -0.04 \
 '--interplot_distance' 0.015 \
-'--top_margin' ${TOP_MARGIN}
+'--top_margin' ${TOP_MARGIN} \
+'--font_name' 'Times New Roman' \
+'--tics_font_name' 'Times New Roman' \
 
 #AVCD Spectra, smooth scale adjusted to max = 10, stick spectra same range, auto max
 echo 'SI AVCD auto-max Spectra'
@@ -191,7 +199,9 @@ python3 plot_manuscript_spectra.py \
 '--smooth_y_tics' 0 5 10 \
 '--stick_y_range' 0 350 \
 '--stick_y_tics' 0 100 200 300 \
-'--top_margin' ${TOP_MARGIN}
+'--top_margin' ${TOP_MARGIN} \
+'--font_name' 'Times New Roman' \
+'--tics_font_name' 'Times New Roman' \
 
 #AB with variable gaussian smoothing
 echo 'SI AB variable smoothing Spectra'
@@ -213,7 +223,9 @@ python3 plot_supplementary_spectra.py \
 '--smooth_y_tics' 0 5 10 \
 '--gaussian_std' 0.2 0.4 0.6 0.8  1.0 \
 '--plot_titles' '0.2 eV' '0.4 eV' '0.6 eV' '0.8 eV' '1.0 eV' \
-'--top_margin' ${TOP_MARGIN}
+'--top_margin' ${TOP_MARGIN} \
+'--font_name' 'Times New Roman' \
+'--tics_font_name' 'Times New Roman' \
 
 #CD with variable gaussian smoothing
 echo 'SI CD variable smoothing Spectra'
@@ -236,7 +248,8 @@ python3 plot_supplementary_spectra.py \
 '--smooth_y_tics' -10 -5 0 5 10 \
 '--gaussian_std' 0.2 0.4 0.6 0.8  1.0 \
 '--plot_titles' '0.2 eV' '0.4 eV' '0.6 eV' '0.8 eV' '1.0 eV' \
-'--top_margin' ${TOP_MARGIN}
+'--top_margin' ${TOP_MARGIN} \
+
 
 #AVCD with variable gaussian smoothing
 echo 'SI AVCD variable smoothing Spectra'
@@ -259,4 +272,6 @@ python3 plot_supplementary_spectra.py \
 '--smooth_y_tics' 0 5 10 \
 '--gaussian_std' 0.2 0.4 0.6 0.8  1.0 \
 '--plot_titles' '0.2 eV' '0.4 eV' '0.6 eV' '0.8 eV' '1.0 eV' \
-'--top_margin' ${TOP_MARGIN}
+'--top_margin' ${TOP_MARGIN} \
+'--font_name' 'Times New Roman' \
+'--tics_font_name' 'Times New Roman' \
